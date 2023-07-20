@@ -1,5 +1,6 @@
 class WhatsappMessage:
     def __init__(self, message_object):
+        self.message_test = None
         self.interactive_type = None
         self.object = None
         self.entry_id = None

@@ -14,46 +14,42 @@ from reply_button import send_whatsapp_reply_button
 from address_message import send_whatsapp_address_message, Address
 
 
-class Data:
-    block: str | None
-    car: str | None
-    color: str | None
-    vehicle_number: str | None
+class User:
+    name: str
+    email_id: str
+    Experience: str
 
     def __init__(self):
-        self.block = None
-        self.car = None
-        self.color = None
-        self.vehicle_number = None
+        self.name = ""
+        self.email_id = ""
+        self.Experience = ""
 
-    def set_block(self, block):
-        self.block = block
+    def set_name(self, name: str):
+        if (name.isdigit()):
+            return False
+        self.name = name
+        return True
 
-    def set_car(self, car):
-        self.car = car
+    def set_email_id(self, email_id: str):
+        if (email_id.isdigit()):
+            return False
+        self.email_id = email_id
+        return True
 
-    def get_block(self):
-        return self.block
+    def check_name(self):
+        if self.name == "":
+            return False
+        return True
 
-    def get_car(self):
-        return self.car
-
-    def set_color(self, color):
-        self.color = color
-
-    def get_color(self):
-        return self.color
-
-    def set_vehicle_number(self, vehicle_number):
-        self.vehicle_number = vehicle_number
-
-    def get_vehicle_number(self):
-        return self.vehicle_number
+    def check_email_id(self):
+        if self.email_id == "":
+            return False
+        return True
 
 
 dict_a = {}
 
-access_token = "EAAwIubFdeA8BAGWkQA43000k1ZAubZA2JWfhrJyXl2U8uQYBYrNb45ftJg4VV9yejlOcniUSZAu9Nq5ZBHlRNkiZAslo8WUjrXfUEqIzV0BJafKqAJDewEccl261k7YxXnWmlYlzCXcQmPt9RYtIyLsApCnIoRYUrfX1xDCruCbflDfEhPgCIvSj3iTo5Ht5KDyVsDIH7LdC9h5oihM1B"
+access_token = "EAAwIubFdeA8BAHSilYo0n3oyxRFsrPNdN98S75nlRDm65HzgsSFcCt9pI5J8SmLZA5Mmhd9hoA1ZBZAHlDg4jkZBYZAYCpr8hsscZCF8I33WTiXmT5S9PYI4GC7TqhQfZBqKGglRmaM5afhxUgZAhLRFreVrCUwwRO5ZBxAxyMahahI5DfjjZAcZCLuBdfvOglB4taAZCvTbeSfs2GcjmaeKZA3wA"
 from_phone_number_id = "101395609536249"
 
 app_cloudflare = CloudflareTunnels()
@@ -94,69 +90,44 @@ async def wa_callback(request: web.Request):
     print(ok)
     message = WhatsappMessage(ok)
     print(message.message_text, message.user, message.message_type, message.button_title)
-    if message.message_text == 'hi':
-        dict_a[message.user] = Data()
-        await send_whatsapp_message(message.user,
-                                    "Hi it appears if you don't have account with us how about we introduce ourself first",
-                                    access_token, from_phone_number_id)
-        await send_whatsapp_reply_button(message.user,
-                                         "We are TCWC by 68 detailers. We provide subscription based car washing to selected condominiums and residence in Singapore. For as low as $5 per wash, 8 limes a week at the convenience of your residential carpark",
-                                         "learn more", 'signup', access_token, from_phone_number_id)
-    elif message.button_title == 'signup' and message.message_type == 'interactive':
-        address1 = Row("1", "1", "Maysprings Condominium -2 Peter Road")
-        address2 = Row("2", "2", "B Riversuites")
-        address3 = Row("3", "3", "CityView Residents")
-        address4 = Row("4", "4", "My Condominium is not listed in the above.Please get in touch with me")
-        section1 = Section("Select any one option", [address1, address2, address3, address4])
-        await send_list_message(from_phone_number_id, "Please select any one option", 'Please enter your location',
-                                access_token, message.user,
-                                section1)
-    elif message.message_type == 'interactive' and message.interactive_type == 'list_reply':
-        if message.list_reply_id != '4':
-            await send_whatsapp_message(message.user, "Thats great lets move on to next details", access_token,
-                                        from_phone_number_id)
-            await send_whatsapp_message(message.user, "Please enter your block number", access_token,
-                                        from_phone_number_id)
+    if message.message_text == 'Hi!':
+        await send_whatsapp_reply_button(message.user, "Hi are you here to apply for internship?", "Yes", "No",
+                                         access_token, from_phone_number_id)
+        dict_a[message.user] = User()
+    elif message.button_title == 'Yes' and message.message_type == 'interactive':
+        await send_whatsapp_message(message.user, "Please enter your name", access_token, from_phone_number_id)
+    elif message.button_title == 'No' and message.message_type == 'interactive':
+        await send_whatsapp_message(message.user, "Please enter your name", access_token, from_phone_number_id)
+    elif message.message_type == 'text' and dict_a[message.user].check_name() == False:
+        ok = dict_a[message.user].set_name(message.message_text)
+        if ok and dict_a[message.user].check_email_id() == False:
+            await send_whatsapp_message(message.user, "Please enter your email id", access_token, from_phone_number_id)
         else:
-            await send_whatsapp_message(message.user, "We will contact you soon", access_token, from_phone_number_id)
-    elif message.message_type == 'text':
-        if dict_a[message.user].get_block() is None:
-            dict_a[message.user].set_block(message.message_text)
-            await send_whatsapp_message(message.user, "That's great lets move to your car details", access_token,
+            await send_whatsapp_message(message.user, "Please enter a valid name", access_token, from_phone_number_id)
+    elif message.message_type == 'text' and dict_a[message.user].check_email_id() == False:
+        ok = dict_a[message.user].set_email_id(message.message_text)
+        if ok and dict_a[message.user].check_name():
+            Row1 = Row('1', '1 year', '1 year')
+            Row2 = Row('2', '2 year', '2 year')
+            Row3 = Row('3', '3 year', '3 year')
+            Row4 = Row('4', '4 year', '4 year')
+            Row5 = Row('5', '5 year', '5 year')
+            section = Section('Experience', [Row1, Row2, Row3, Row4, Row5])
+            await send_list_message(from_phone_number_id, 'Please select one',
+                                    "Please select how many years of experience you have with Python/JS/ Automation Development",
+                                    access_token,
+                                    message.user, section)
+        else:
+            await send_whatsapp_message(message.user, "Please enter a valid email id", access_token,
                                         from_phone_number_id)
-            await send_whatsapp_message(message.user, "Brand name of car", access_token, from_phone_number_id)
-        elif dict_a[message.user].get_car() is None:
-            dict_a[message.user].set_car(message.message_text)
-            await send_whatsapp_message(message.user, "Colour name of car", access_token, from_phone_number_id)
-        elif dict_a[message.user].get_color() is None:
-            dict_a[message.user].set_color(message.message_text)
-            await send_whatsapp_message(message.user, "Vehicle number", access_token, from_phone_number_id)
-        elif dict_a[message.user].get_vehicle_number() is None:
-            dict_a[message.user].set_vehicle_number(message.message_text)
-            await send_whatsapp_reply_button(message.user,
-                                             "How would you like to move forward",
-                                             "Add another vehicle", 'move to packages', access_token, from_phone_number_id)
-    elif message.message_type == 'interactive' and message.interactive_type == 'reply_button':
-        if(message.message_text == 'move to packages'):
-            await send_whatsapp_reply_button(message.user,"Please choose the package Package A monday and thursdays only at $ 55 per month or 6.85 per wash 50 slots left"
-                                                          "Package B monday and thursdays only at $155 per month or 6.80 for wash ask any questions",'Package A','Package B',access_token,from_phone_number_id)
-        elif(message.message_text == 'Package A'):
-            address1 = Row("1", "1", "Weekly tyre shine $5 per month")
-            address2 = Row("2", "2", "Monthly interior cleaning $10 per month appintment required")
-            address3 = Row("3", "3", "Northing else")
-            section1 = Section("Select any one option", [address1, address2, address3])
-            await send_list_message(from_phone_number_id, "Please select any one option", 'Please enter any additions',access_token,message.user,section1)
-        elif(message.message_text == 'Package B'):
-            address1 = Row("1", "1", "Weekly tyre shine $5 per month")
-            address2 = Row("2", "2", "Monthly interior cleaning $10 per month appintment required")
-            address3 = Row("3", "3", "Northing else")
-            section1 = Section("Select any one option", [address1, address2, address3])
-            await send_list_message(from_phone_number_id, "Please select any one option", 'Please enter any additions',access_token,message.user,section1)
-        elif(message.interactive_type == 'list_reply'):
-            await send_whatsapp_message(message.user, "Thats great lets proceed to payment you will not be charged ",
-                                        access_token, from_phone_number_id)
-
-    return web.Response(text='ok', status=200)
+    if message.message_type == 'interactive':
+        print(message.list_reply_id, message.list_reply_title)
+        if message.list_reply_title == '1 year' or message.list_reply_title == '2 year' or message.list_reply_title == '3 year' or message.list_reply_title == '4 year' or message.list_reply_title == '5 year':
+            print(hello)
+            await send_whatsapp_message(message.user, "Thank you for contacting us we will reach you soon",
+                                        access_token,
+                                        from_phone_number_id)
+    return web.Response(text="ok", status=200)
 
 
 @routes.get('/hello')
