@@ -1,10 +1,9 @@
 import json
 import aiohttp
 from aiohttp import web
-from cloudflared.cloudflare import CloudflareTunnels
 import asyncio
 from sqlalchemy import create_engine
-from list_message import send_list_message,Row,Section
+from list_message import send_list_message, Row, Section
 from send_message import send_whatsapp_message
 from address_message import send_whatsapp_address_message
 from reply_button import send_whatsapp_reply_button
@@ -12,6 +11,7 @@ from Praser import WhatsappMessage
 from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+import os
 
 Base = declarative_base()
 engine = create_engine('sqlite:///test.db', echo=True)
@@ -34,6 +34,8 @@ class User2(Base):
 
 
 Base.metadata.create_all(engine)
+
+
 class User:
     name: str
     email_id: str
@@ -69,12 +71,8 @@ class User:
 
 dict_a = {}
 
-access_token = "EAAwIubFdeA8BAD1GtTYEh2Vif8kLzxVfZAeAJeIpD45s7VGPBU4JH5hy9BQgxxEdbcq5kWvr9r2iQfZAJ5YLIRbDWNellvWdaMZAIYE4HkIkqgZAtAZBTIqZAVsoxnrZANPT1h9c5YdrojO00WmHTLGIT6zWZCwMApZCHHQnP8rewaROAjAazojBHlYh3VZAbemhOZAGfJD3B0mhELxxREPX16M"
+access_token = "EAAwIubFdeA8BAMft2mCY3WFZCD6ZC795zxYBjGwvwOegboCSJm1rSMnsA3ZAV2T0SZAD6jdb1NJMMbs8mZAqutIAZB2VGpumnG6pxzR2upfQgbDqtfiQck88vsbjZBGT4JACgRrh20k2QVuHjfSA44HTo2ZBHUHSx7qLucnyOwjGfSBjrKq3sv3FSgbwKgrpuGFMbHboHWbU9ZCKQSlvKlys4"
 from_phone_number_id = "101395609536249"
-
-app_cloudflare = CloudflareTunnels()
-app_cloudflare.create_tunnel("whatsapp")
-app_cloudflare.add_dns('whatsapp', 'whatsapp.sigireddybalasai.tech')
 routes = web.RouteTableDef()
 loopa = asyncio.new_event_loop()
 
@@ -159,8 +157,12 @@ async def hello(request):
     print("helo")
     return web.Response(text="Hello, world")
 
+@routes.get('/send')
+async def send(request):
+    await send_whatsapp_message('919398993400',"working",access_token,from_phone_number_id)
+    return web.Response(text="Sent")
+
 
 app = web.Application()
 app.router.add_routes(routes)
-app_cloudflare.run('whatsapp', "localhost:8080")
-web.run_app(app, port=8080)
+print(os.environ)

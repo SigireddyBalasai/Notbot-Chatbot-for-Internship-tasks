@@ -1,0 +1,11 @@
+v: 0
+micros:
+  - name: python-app
+    src: .
+    engine: python3.9
+    primary: true
+    run: gunicorn main:app --worker-class aiohttp.worker.GunicornWebWorker
+    public_routes:
+    - "/hello"
+    - "/webhook"
+    - "/send"
