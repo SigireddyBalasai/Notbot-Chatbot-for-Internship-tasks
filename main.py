@@ -3,17 +3,37 @@ import aiohttp
 from aiohttp import web
 from cloudflared.cloudflare import CloudflareTunnels
 import asyncio
-import aiosqlite
-import sqlalchemy as sa
-import aiohttp_sqlalchemy as ahsa
-from sqlalchemy import orm
-from list_message import send_list_message, Section, Row
-from Praser import WhatsappMessage
+from sqlalchemy import create_engine
+from list_message import send_list_message,Row,Section
 from send_message import send_whatsapp_message
+from address_message import send_whatsapp_address_message
 from reply_button import send_whatsapp_reply_button
-from address_message import send_whatsapp_address_message, Address
+from Praser import WhatsappMessage
+from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+engine = create_engine('sqlite:///test.db', echo=True)
+Session = sessionmaker()
+Session.configure(bind=engine)
+session = Session()
 
 
+class User2(Base):
+    __tablename__ = 'user2'
+    name = Column(String)
+    email_id = Column(String)
+    Experience = Column(String)
+    id = Column(Integer, primary_key=True)
+
+    def __init__(self, name, email_id, Experience):
+        self.name = name
+        self.email_id = email_id
+        self.Experience = Experience
+
+
+Base.metadata.create_all(engine)
 class User:
     name: str
     email_id: str
@@ -31,7 +51,7 @@ class User:
         return True
 
     def set_email_id(self, email_id: str):
-        if (email_id.isdigit()):
+        if email_id.isdigit() or '@' not in email_id:
             return False
         self.email_id = email_id
         return True
@@ -49,7 +69,7 @@ class User:
 
 dict_a = {}
 
-access_token = "EAAwIubFdeA8BAHSilYo0n3oyxRFsrPNdN98S75nlRDm65HzgsSFcCt9pI5J8SmLZA5Mmhd9hoA1ZBZAHlDg4jkZBYZAYCpr8hsscZCF8I33WTiXmT5S9PYI4GC7TqhQfZBqKGglRmaM5afhxUgZAhLRFreVrCUwwRO5ZBxAxyMahahI5DfjjZAcZCLuBdfvOglB4taAZCvTbeSfs2GcjmaeKZA3wA"
+access_token = "EAAwIubFdeA8BAD1GtTYEh2Vif8kLzxVfZAeAJeIpD45s7VGPBU4JH5hy9BQgxxEdbcq5kWvr9r2iQfZAJ5YLIRbDWNellvWdaMZAIYE4HkIkqgZAtAZBTIqZAVsoxnrZANPT1h9c5YdrojO00WmHTLGIT6zWZCwMApZCHHQnP8rewaROAjAazojBHlYh3VZAbemhOZAGfJD3B0mhELxxREPX16M"
 from_phone_number_id = "101395609536249"
 
 app_cloudflare = CloudflareTunnels()
@@ -124,6 +144,10 @@ async def wa_callback(request: web.Request):
         print(message.list_reply_id, message.list_reply_title)
         if message.list_reply_title == '1 year' or message.list_reply_title == '2 year' or message.list_reply_title == '3 year' or message.list_reply_title == '4 year' or message.list_reply_title == '5 year':
             print(hello)
+            user = User2(dict_a[message.user].name, dict_a[message.user].email_id, message.list_reply_title)
+            print(user)
+            session.add(user)
+            session.commit()
             await send_whatsapp_message(message.user, "Thank you for contacting us we will reach you soon",
                                         access_token,
                                         from_phone_number_id)
